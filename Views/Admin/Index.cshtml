@@ -1,0 +1,47 @@
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="mb-4">
+    <h2 class="fw-bold mb-1"><i class="fas fa-cog me-2 text-warning"></i>Admin Dashboard</h2>
+    <p class="text-muted">Manage the ASVS Security Auditor platform</p>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card p-4 text-center">
+            <div class="h2 fw-bold text-primary">@ViewBag.ChapterCount</div>
+            <div class="text-muted">Chapters</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-4 text-center">
+            <div class="h2 fw-bold text-success">@ViewBag.RequirementCount</div>
+            <div class="text-muted">Requirements</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-3">
+        <a asp-action="Import" class="card p-4 text-decoration-none d-block">
+            <i class="fas fa-file-import text-warning fa-2x mb-2"></i>
+            <h6 class="fw-bold">Import CSV</h6>
+            <p class="text-muted small mb-0">Import OWASP ASVS checklist from CSV</p>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a asp-action="Requirements" class="card p-4 text-decoration-none d-block">
+            <i class="fas fa-database text-primary fa-2x mb-2"></i>
+            <h6 class="fw-bold">Requirements</h6>
+            <p class="text-muted small mb-0">View, edit, delete requirements</p>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a asp-action="Chapters" class="card p-4 text-decoration-none d-block">
+            <i class="fas fa-folder text-success fa-2x mb-2"></i>
+            <h6 class="fw-bold">Chapters</h6>
+            <p class="text-muted small mb-0">View all ASVS chapters</p>
+        </a>
+    </div>
+</div>

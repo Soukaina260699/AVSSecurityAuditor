@@ -1,0 +1,213 @@
+@model AVSSecurityAuditor.ViewModels.BenchmarkReportViewModel
+@{
+    ViewData["Title"] = "Assessment Report";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="fas fa-chart-bar me-2 text-primary"></i>Benchmark Report</h2>
+        <p class="text-muted mb-0">@Model.ProjectName — @Model.AssessmentName</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button onclick="window.print()" class="btn btn-outline-light">
+            <i class="fas fa-print me-2"></i>Print / PDF
+        </button>
+        <a asp-action="Evaluate" asp-route-id="@Model.AssessmentId" class="btn btn-outline-primary">
+            <i class="fas fa-edit me-2"></i>Edit Assessment
+        </a>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card p-4 text-center">
+            <div class="display-5 fw-bold text-@Model.RiskColor mb-1">@Model.CompliancePercentage%</div>
+            <div class="text-muted">Overall Compliance</div>
+            <div class="progress mt-2" style="height:6px;">
+                <div class="progress-bar bg-@Model.RiskColor" style="width:@Model.CompliancePercentage%"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-4 text-center">
+            <div class="display-5 fw-bold text-@Model.RiskColor mb-1">@Model.RiskLevel</div>
+            <div class="text-muted">Risk Level</div>
+            <span class="badge bg-@Model.RiskColor mt-2 px-3 py-2">@Model.RiskLevel Risk</span>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card p-4">
+            <div class="row text-center g-2">
+                <div class="col-3">
+                    <div class="h4 fw-bold text-success">@Model.ValidCount</div>
+                    <small class="text-muted">Valid</small>
+                </div>
+                <div class="col-3">
+                    <div class="h4 fw-bold text-danger">@Model.NotValidCount</div>
+                    <small class="text-muted">Not Valid</small>
+                </div>
+                <div class="col-3">
+                    <div class="h4 fw-bold text-secondary">@Model.NotApplicableCount</div>
+                    <small class="text-muted">N/A</small>
+                </div>
+                <div class="col-3">
+                    <div class="h4 fw-bold text-warning">@Model.PendingCount</div>
+                    <small class="text-muted">Pending</small>
+                </div>
+            </div>
+            <div class="progress mt-3" style="height:10px;">
+                @{ 
+                    double validPct = Model.TotalRequirements > 0 ? Model.ValidCount * 100.0 / Model.TotalRequirements : 0;
+                    double nvPct = Model.TotalRequirements > 0 ? Model.NotValidCount * 100.0 / Model.TotalRequirements : 0;
+                    double naPct = Model.TotalRequirements > 0 ? Model.NotApplicableCount * 100.0 / Model.TotalRequirements : 0;
+                    double pPct = Model.TotalRequirements > 0 ? Model.PendingCount * 100.0 / Model.TotalRequirements : 0;
+                }
+                <div class="progress-bar bg-success" style="width:@validPct%"></div>
+                <div class="progress-bar bg-danger" style="width:@nvPct%"></div>
+                <div class="progress-bar bg-secondary" style="width:@naPct%"></div>
+                <div class="progress-bar bg-warning" style="width:@pPct%"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <h5 class="fw-bold mb-3">Compliance by Chapter</h5>
+            <canvas id="chapterChart" height="300"></canvas>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card p-4">
+            <h5 class="fw-bold mb-3">Status Distribution</h5>
+            <canvas id="doughnutChart" height="300"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Chapter Analysis Table -->
+<div class="card p-4 mb-4">
+    <h5 class="fw-bold mb-3"><i class="fas fa-table me-2 text-primary"></i>Chapter-by-Chapter Analysis</h5>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Chapter</th>
+                    <th>Total</th>
+                    <th>Valid</th>
+                    <th>Not Valid</th>
+                    <th>N/A</th>
+                    <th>Pending</th>
+                    <th>Compliance</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var ch in Model.ChapterStats)
+                {
+                    <tr>
+                        <td>V@ch.ChapterNumber</td>
+                        <td>@ch.ChapterName</td>
+                        <td>@ch.Total</td>
+                        <td class="text-success">@ch.Valid</td>
+                        <td class="text-danger">@ch.NotValid</td>
+                        <td class="text-secondary">@ch.NotApplicable</td>
+                        <td class="text-warning">@ch.Pending</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress flex-grow-1" style="height:6px;">
+                                    <div class="progress-bar bg-@(ch.Compliance >= 80 ? "success" : ch.Compliance >= 50 ? "warning" : "danger")"
+                                         style="width:@ch.Compliance%"></div>
+                                </div>
+                                <span class="small fw-bold">@ch.Compliance%</span>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@if (Model.WeakAreas.Any())
+{
+    <div class="card p-4 border-danger">
+        <h5 class="fw-bold mb-3 text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Weak Areas (< 50% Compliance)</h5>
+        <div class="row g-3">
+            @foreach (var w in Model.WeakAreas)
+            {
+                <div class="col-md-4">
+                    <div class="card p-3" style="border-color:rgba(220,53,69,.3)!important;">
+                        <div class="fw-bold">V@w.ChapterNumber. @w.ChapterName</div>
+                        <div class="d-flex align-items-center gap-2 mt-2">
+                            <div class="progress flex-grow-1" style="height:8px;">
+                                <div class="progress-bar bg-danger" style="width:@w.Compliance%"></div>
+                            </div>
+                            <span class="text-danger fw-bold">@w.Compliance%</span>
+                        </div>
+                        <small class="text-muted mt-1">@w.NotValid not valid, @w.Pending pending</small>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- Report Info -->
+<div class="card p-3 mt-4">
+    <div class="row text-center">
+        <div class="col"><small class="text-muted">Auditor</small><br><strong>@Model.Auditor</strong></div>
+        <div class="col"><small class="text-muted">Date</small><br><strong>@Model.CreatedAt.ToString("dd MMM yyyy")</strong></div>
+        <div class="col"><small class="text-muted">Standard</small><br><strong>OWASP ASVS v4.0</strong></div>
+        <div class="col"><small class="text-muted">Total Requirements</small><br><strong>@Model.TotalRequirements</strong></div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const chapterLabels = [@Html.Raw(string.Join(",", Model.ChapterStats.Select(c => $"\"V{c.ChapterNumber}\"")))];
+    const chapterData = [@Html.Raw(string.Join(",", Model.ChapterStats.Select(c => c.Compliance)))];
+
+    new Chart(document.getElementById('chapterChart'), {
+        type: 'bar',
+        data: {
+            labels: chapterLabels,
+            datasets: [{
+                label: 'Compliance %',
+                data: chapterData,
+                backgroundColor: chapterData.map(v => v >= 80 ? 'rgba(25,135,84,.7)' : v >= 50 ? 'rgba(255,193,7,.7)' : 'rgba(220,53,69,.7)'),
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,.05)' }, ticks: { color: '#adb5bd' } },
+                x: { grid: { display: false }, ticks: { color: '#adb5bd' } }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('doughnutChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Valid', 'Not Valid', 'Not Applicable', 'Pending'],
+            datasets: [{
+                data: [@Model.ValidCount, @Model.NotValidCount, @Model.NotApplicableCount, @Model.PendingCount],
+                backgroundColor: ['rgba(25,135,84,.8)', 'rgba(220,53,69,.8)', 'rgba(108,117,125,.8)', 'rgba(255,193,7,.8)'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { labels: { color: '#adb5bd' } }
+            }
+        }
+    });
+</script>
+}

@@ -1,0 +1,95 @@
+@model AVSSecurityAuditor.ViewModels.ChecklistViewModel
+@{
+    ViewData["Title"] = "ASVS Checklist";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="fas fa-list-check me-2 text-primary"></i>ASVS Checklist</h2>
+        <p class="text-muted mb-0">@Model.TotalRequirements requirements across @Model.Chapters.Count chapters</p>
+    </div>
+</div>
+
+<!-- Search & Filter -->
+<div class="card p-3 mb-4">
+    <form method="get" class="row g-2">
+        <div class="col-md-8">
+            <input type="text" name="search" value="@Model.SearchTerm" class="form-control"
+                   placeholder="Search requirements, IDs, descriptions..."/>
+        </div>
+        <div class="col-md-3">
+            <select name="chapterId" class="form-select">
+                <option value="">All Chapters</option>
+                @foreach (var ch in Model.Chapters)
+                {
+                    <option value="@ch.Id" @(Model.FilterChapter == ch.Id ? "selected" : "")>
+                        V@ch.ChapterNumber. @ch.Name
+                    </option>
+                }
+            </select>
+        </div>
+        <div class="col-md-1">
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </form>
+</div>
+
+@if (!Model.Chapters.Any() || !Model.Chapters.Any(c => c.Requirements.Any()))
+{
+    <div class="card p-5 text-center">
+        <i class="fas fa-database fa-4x text-muted mb-3 opacity-25"></i>
+        <h4>No Requirements Found</h4>
+        <p class="text-muted">
+            @if (User.IsInRole("Admin"))
+            {
+                <text>Please <a asp-controller="Admin" asp-action="Import">import the ASVS CSV</a> to populate the checklist.</text>
+            }
+            else
+            {
+                <text>The ASVS checklist has not been imported yet. Please contact an administrator.</text>
+            }
+        </p>
+    </div>
+}
+
+@foreach (var chapter in Model.Chapters.Where(c => c.Requirements.Any()))
+{
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center"
+             style="background:rgba(13,110,253,.1);border-bottom:1px solid #2a2d3e;cursor:pointer;"
+             data-bs-toggle="collapse" data-bs-target="#ch-@chapter.Id">
+            <div>
+                <span class="badge bg-primary me-2">V@chapter.ChapterNumber</span>
+                <strong>@chapter.Name</strong>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-secondary">@chapter.Requirements.Count reqs</span>
+                <i class="fas fa-chevron-down text-muted"></i>
+            </div>
+        </div>
+        <div class="collapse show" id="ch-@chapter.Id">
+            <div class="p-3">
+                @foreach (var req in chapter.Requirements.OrderBy(r => r.RequirementId))
+                {
+                    <div class="card p-3 mb-2" style="background:rgba(255,255,255,.02);">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <div>
+                                <span class="badge bg-primary me-2">@req.RequirementId</span>
+                                <strong>@req.Title</strong>
+                            </div>
+                            <div class="d-flex gap-1 ms-2 flex-shrink-0">
+                                @if (req.Level1 == "✓") { <span class="badge bg-success">L1</span> }
+                                @if (req.Level2 == "✓") { <span class="badge bg-warning text-dark">L2</span> }
+                                @if (req.Level3 == "✓") { <span class="badge bg-danger">L3</span> }
+                                @if (!string.IsNullOrEmpty(req.Cwe)) { <span class="badge bg-dark">CWE-@req.Cwe</span> }
+                            </div>
+                        </div>
+                        <p class="text-muted small mb-0">@req.Description</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}

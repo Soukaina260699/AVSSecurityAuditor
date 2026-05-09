@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ASVS Security Auditor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        :root {
+            --primary: #0d6efd;
+            --dark-bg: #0f1117;
+            --card-bg: #1a1d2e;
+            --border-color: #2a2d3e;
+            --text-muted: #8b8d98;
+        }
+        body { background: var(--dark-bg); color: #e2e8f0; font-family: 'Inter', sans-serif; }
+        .navbar { background: rgba(26,29,46,0.95) !important; border-bottom: 1px solid var(--border-color); backdrop-filter: blur(10px); }
+        .navbar-brand { font-weight: 700; font-size: 1.2rem; }
+        .navbar-brand span { color: var(--primary); }
+        .nav-link { color: #adb5bd !important; transition: color .2s; }
+        .nav-link:hover, .nav-link.active { color: #fff !important; }
+        .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; }
+        .sidebar { background: var(--card-bg); border-right: 1px solid var(--border-color); min-height: 100vh; width: 240px; position: fixed; top: 56px; left: 0; overflow-y: auto; z-index: 100; }
+        .sidebar .nav-link { color: #adb5bd; padding: .6rem 1.2rem; border-radius: 8px; margin: 2px 8px; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: rgba(13,110,253,.15); color: #fff !important; }
+        .sidebar .nav-link i { width: 20px; }
+        .main-content { margin-left: 240px; padding: 2rem; margin-top: 56px; }
+        .badge-valid { background: rgba(25,135,84,.2); color: #198754; border: 1px solid rgba(25,135,84,.3); }
+        .badge-notvalid { background: rgba(220,53,69,.2); color: #dc3545; border: 1px solid rgba(220,53,69,.3); }
+        .badge-na { background: rgba(108,117,125,.2); color: #6c757d; border: 1px solid rgba(108,117,125,.3); }
+        .badge-pending { background: rgba(255,193,7,.2); color: #ffc107; border: 1px solid rgba(255,193,7,.3); }
+        .btn-primary { background: linear-gradient(135deg, #0d6efd, #0056d6); border: none; }
+        .progress { background: rgba(255,255,255,.1); }
+        .table { color: #e2e8f0; }
+        .table > thead { background: rgba(255,255,255,.05); }
+        .table-hover > tbody > tr:hover { background: rgba(255,255,255,.03); }
+        .form-control, .form-select { background: rgba(255,255,255,.05); border-color: var(--border-color); color: #e2e8f0; }
+        .form-control:focus, .form-select:focus { background: rgba(255,255,255,.08); border-color: var(--primary); color: #e2e8f0; box-shadow: 0 0 0 .2rem rgba(13,110,253,.25); }
+        .form-control::placeholder { color: var(--text-muted); }
+        .alert-success { background: rgba(25,135,84,.15); border-color: rgba(25,135,84,.3); color: #75b798; }
+        .alert-danger { background: rgba(220,53,69,.15); border-color: rgba(220,53,69,.3); color: #ea868f; }
+        @@media (max-width: 768px) { .sidebar { display: none; } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-md navbar-dark fixed-top">
+    <div class="container-fluid px-3">
+        <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+            <i class="fas fa-shield-alt me-2"></i>ASVS<span>Auditor</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navBar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navBar">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Checklist" asp-action="Index">
+                        <i class="fas fa-list me-1"></i>Checklist
+                    </a>
+                </li>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Assessment" asp-action="Index">
+                            <i class="fas fa-tasks me-1"></i>Assessments
+                        </a>
+                    </li>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Admin" asp-action="Index">
+                                <i class="fas fa-cog me-1"></i>Admin
+                            </a>
+                        </li>
+                    }
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i>@User.Identity!.Name
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+                            <li>
+                                <form asp-controller="Account" asp-action="Logout" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                }
+                else
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Account" asp-action="Login">
+                            <i class="fas fa-sign-in-alt me-1"></i>Login
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary btn-sm ms-2" asp-controller="Account" asp-action="Register">
+                            Register
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</nav>
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <div class="sidebar">
+        <div class="pt-3">
+            <div class="px-3 mb-2 text-muted small text-uppercase fw-bold">Navigation</div>
+            <a class="nav-link d-flex align-items-center" asp-controller="Home" asp-action="Index">
+                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+            </a>
+            <a class="nav-link d-flex align-items-center" asp-controller="Checklist" asp-action="Index">
+                <i class="fas fa-list-check me-2"></i>ASVS Checklist
+            </a>
+            <a class="nav-link d-flex align-items-center" asp-controller="Assessment" asp-action="Index">
+                <i class="fas fa-tasks me-2"></i>My Assessments
+            </a>
+            <a class="nav-link d-flex align-items-center" asp-controller="Assessment" asp-action="Create">
+                <i class="fas fa-plus-circle me-2"></i>New Assessment
+            </a>
+            @if (User.IsInRole("Admin"))
+            {
+                <hr class="border-secondary my-2 mx-3"/>
+                <div class="px-3 mb-2 text-muted small text-uppercase fw-bold">Admin</div>
+                <a class="nav-link d-flex align-items-center" asp-controller="Admin" asp-action="Index">
+                    <i class="fas fa-home me-2"></i>Admin Dashboard
+                </a>
+                <a class="nav-link d-flex align-items-center" asp-controller="Admin" asp-action="Import">
+                    <i class="fas fa-file-import me-2"></i>Import CSV
+                </a>
+                <a class="nav-link d-flex align-items-center" asp-controller="Admin" asp-action="Requirements">
+                    <i class="fas fa-database me-2"></i>Manage Requirements
+                </a>
+                <a class="nav-link d-flex align-items-center" asp-controller="Admin" asp-action="Chapters">
+                    <i class="fas fa-folder me-2"></i>Chapters
+                </a>
+            }
+        </div>
+    </div>
+}
+
+<div class="@(User.Identity?.IsAuthenticated == true ? "main-content" : "container-fluid mt-5 pt-3")">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mb-3">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mb-3">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @RenderBody()
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

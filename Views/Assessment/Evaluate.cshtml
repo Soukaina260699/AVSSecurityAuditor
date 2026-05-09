@@ -1,0 +1,249 @@
+@model AVSSecurityAuditor.ViewModels.AssessmentDetailViewModel
+@{
+    ViewData["Title"] = "Evaluate - " + Model.Assessment.Name;
+    int activeChapter = (int)(ViewBag.ActiveChapter ?? (Model.Chapters.FirstOrDefault()?.Id ?? 0));
+    var items = Model.Assessment.Items.ToList();
+    int total = items.Count;
+    int valid = items.Count(i => i.Status == AVSSecurityAuditor.Models.AssessmentStatus.Valid);
+    int applicable = items.Count(i => i.Status != AVSSecurityAuditor.Models.AssessmentStatus.NotApplicable);
+    double progress = applicable > 0 ? Math.Round((double)valid / applicable * 100, 1) : 0;
+}
+
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">@Model.Assessment.Name</h2>
+        <p class="text-muted">Project: <strong>@Model.Assessment.ProjectName</strong> | Auditor: @Model.Assessment.Auditor</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Report" asp-route-id="@Model.Assessment.Id" class="btn btn-success">
+            <i class="fas fa-chart-bar me-2"></i>View Report
+        </a>
+    </div>
+</div>
+
+<!-- Progress Bar -->
+<div class="card p-3 mb-4">
+    <div class="d-flex justify-content-between mb-2">
+        <span>Overall Compliance</span>
+        <strong class="text-@(progress >= 80 ? "success" : progress >= 50 ? "warning" : "danger")">@progress%</strong>
+    </div>
+    <div class="progress" style="height:10px;">
+        <div class="progress-bar bg-@(progress >= 80 ? "success" : progress >= 50 ? "warning" : "danger")"
+             style="width:@progress%" id="mainProgress"></div>
+    </div>
+    <div class="row text-center mt-2">
+        <div class="col"><span class="badge badge-valid">@valid Valid</span></div>
+        <div class="col"><span class="badge badge-notvalid">@items.Count(i => i.Status == AVSSecurityAuditor.Models.AssessmentStatus.NotValid) Not Valid</span></div>
+        <div class="col"><span class="badge badge-na">@items.Count(i => i.Status == AVSSecurityAuditor.Models.AssessmentStatus.NotApplicable) N/A</span></div>
+        <div class="col"><span class="badge badge-pending">@items.Count(i => i.Status == AVSSecurityAuditor.Models.AssessmentStatus.Pending) Pending</span></div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- Chapter Navigation -->
+    <div class="col-md-3">
+        <div class="card p-3">
+            <h6 class="fw-bold mb-3 text-muted">CHAPTERS</h6>
+            <div class="d-flex flex-column gap-1">
+                @foreach (var chapter in Model.Chapters)
+                {
+                    var chItems = Model.ItemsByChapter.GetValueOrDefault(chapter.Id, new List<AVSSecurityAuditor.Models.AssessmentItem>());
+                    var chValid = chItems.Count(i => i.Status == AVSSecurityAuditor.Models.AssessmentStatus.Valid);
+                    var chApplicable = chItems.Count(i => i.Status != AVSSecurityAuditor.Models.AssessmentStatus.NotApplicable);
+                    var chPct = chApplicable > 0 ? (int)(chValid * 100.0 / chApplicable) : 0;
+                    <a asp-action="Evaluate" asp-route-id="@Model.Assessment.Id" asp-route-chapterId="@chapter.Id"
+                       class="btn btn-sm text-start @(chapter.Id == activeChapter ? "btn-primary" : "btn-outline-secondary")">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>V@chapter.ChapterNumber</span>
+                            <small>@chPct%</small>
+                        </div>
+                        <div class="small text-truncate">@chapter.Name</div>
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Requirements -->
+    <div class="col-md-9">
+        @{
+            var activeChapterObj = Model.Chapters.FirstOrDefault(c => c.Id == activeChapter);
+            var activeItems = Model.ItemsByChapter.GetValueOrDefault(activeChapter, new List<AVSSecurityAuditor.Models.AssessmentItem>());
+        }
+        @if (activeChapterObj != null)
+        {
+            <div class="card p-3 mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0">V@activeChapterObj.ChapterNumber. @activeChapterObj.Name</h5>
+                    <div class="d-flex gap-2">
+                        <form asp-action="BulkUpdate" method="post" class="d-flex gap-2">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="assessmentId" value="@Model.Assessment.Id"/>
+                            <input type="hidden" name="chapterId" value="@activeChapter"/>
+                            <select name="status" class="form-select form-select-sm" style="width:auto;">
+                                <option value="0">All: Pending</option>
+                                <option value="1">All: Valid</option>
+                                <option value="2">All: Not Valid</option>
+                                <option value="3">All: N/A</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Apply</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            @foreach (var item in activeItems)
+            {
+                var req = item.Requirement!;
+                <div class="card p-3 mb-2 requirement-card" id="item-@item.Id">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <span class="badge bg-primary me-2">@req.RequirementId</span>
+                            <strong>@req.Title</strong>
+                            @if (!string.IsNullOrEmpty(req.Cwe))
+                            {
+                                <span class="badge bg-secondary ms-2">CWE-@req.Cwe</span>
+                            }
+                        </div>
+                        <div class="d-flex gap-1 ms-3 flex-shrink-0">
+                            <span class="badge @(req.Level1 == "✓" ? "bg-success" : "bg-dark")">L1</span>
+                            <span class="badge @(req.Level2 == "✓" ? "bg-warning" : "bg-dark")">L2</span>
+                            <span class="badge @(req.Level3 == "✓" ? "bg-danger" : "bg-dark")">L3</span>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-3">@req.Description</p>
+
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button"
+                                    class="btn status-btn @(item.Status == AVSSecurityAuditor.Models.AssessmentStatus.Valid ? "btn-success" : "btn-outline-success")"
+                                    onclick="updateStatus(@item.Id, @Model.Assessment.Id, 1, this)">
+                                <i class="fas fa-check me-1"></i>Valid
+                            </button>
+                            <button type="button"
+                                    class="btn status-btn @(item.Status == AVSSecurityAuditor.Models.AssessmentStatus.NotValid ? "btn-danger" : "btn-outline-danger")"
+                                    onclick="updateStatus(@item.Id, @Model.Assessment.Id, 2, this)">
+                                <i class="fas fa-times me-1"></i>Not Valid
+                            </button>
+                            <button type="button"
+                                    class="btn status-btn @(item.Status == AVSSecurityAuditor.Models.AssessmentStatus.NotApplicable ? "btn-secondary" : "btn-outline-secondary")"
+                                    onclick="updateStatus(@item.Id, @Model.Assessment.Id, 3, this)">
+                                N/A
+                            </button>
+                            <button type="button"
+                                    class="btn status-btn @(item.Status == AVSSecurityAuditor.Models.AssessmentStatus.Pending ? "btn-warning" : "btn-outline-warning")"
+                                    onclick="updateStatus(@item.Id, @Model.Assessment.Id, 0, this)">
+                                <i class="fas fa-clock me-1"></i>Pending
+                            </button>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-info ms-auto"
+                                onclick="askAI(@req.Id, '@lang')">
+                            <i class="fas fa-robot me-1"></i>AI Explain
+                        </button>
+                    </div>
+                    <div class="ai-result mt-2 d-none" id="ai-@req.Id">
+                        <div class="card p-3" style="background:rgba(13,202,240,.08);border-color:rgba(13,202,240,.2);">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-robot text-info me-2"></i>
+                                <strong class="text-info">AI Explanation</strong>
+                                <div class="spinner-border spinner-border-sm text-info ms-2 ai-spinner" role="status"></div>
+                            </div>
+                            <p class="mb-0 small ai-text"></p>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<!-- AI Modal -->
+<div class="modal fade" id="aiModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="background:#1a1d2e;border:1px solid #2a2d3e;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title"><i class="fas fa-robot me-2 text-info"></i>AI Security Assistant</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="aiModalBody">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-info mb-3"></div>
+                    <p class="text-muted">AI is analyzing this requirement...</p>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <select id="aiLangSelect" class="form-select form-select-sm" style="width:auto;">
+                    <option value="en">English</option>
+                    <option value="fr">Français</option>
+                </select>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+let currentReqId = null;
+const antiForgeryToken = '@Html.AntiForgeryToken()'.match(/value="([^"]+)"/)[1];
+
+async function updateStatus(itemId, assessmentId, status, btn) {
+    const card = btn.closest('.requirement-card');
+    const group = btn.closest('.btn-group');
+    
+    // Reset all buttons in group
+    group.querySelectorAll('.status-btn').forEach(b => {
+        b.className = b.className.replace(/btn-(success|danger|secondary|warning|primary)(?!\s|$)/g, 'btn-outline-$1');
+    });
+    
+    // Activate clicked button
+    btn.className = btn.className.replace('btn-outline-', 'btn-');
+    
+    try {
+        const resp = await fetch('/Assessment/UpdateItem', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': antiForgeryToken
+            },
+            body: `assessmentId=${assessmentId}&itemId=${itemId}&status=${status}&notes=`
+        });
+        if (!resp.ok) throw new Error('Failed');
+        
+        // Show checkmark flash
+        card.style.borderColor = status === 1 ? 'rgba(25,135,84,.5)' : 
+                                  status === 2 ? 'rgba(220,53,69,.5)' : 
+                                  status === 3 ? 'rgba(108,117,125,.5)' : 'rgba(255,193,7,.5)';
+        setTimeout(() => card.style.borderColor = '', 800);
+    } catch(e) {
+        console.error(e);
+    }
+}
+
+async function askAI(reqId, lang) {
+    currentReqId = reqId;
+    const selectedLang = document.getElementById('aiLangSelect')?.value || lang || 'en';
+    const modal = new bootstrap.Modal(document.getElementById('aiModal'));
+    document.getElementById('aiModalBody').innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-info mb-3"></div>
+            <p class="text-muted">AI is analyzing this requirement...</p>
+        </div>`;
+    modal.show();
+    
+    try {
+        const resp = await fetch(`/Assessment/AiExplain?requirementId=${reqId}&lang=${selectedLang}`);
+        const data = await resp.json();
+        document.getElementById('aiModalBody').innerHTML = `
+            <div class="mb-2">
+                <span class="badge bg-primary">${data.requirementId}</span>
+                <strong class="ms-2">${data.title}</strong>
+            </div>
+            <hr style="border-color:#2a2d3e"/>
+            <p style="line-height:1.8;">${data.explanation.replace(/\n/g, '<br>')}</p>`;
+    } catch(e) {
+        document.getElementById('aiModalBody').innerHTML = '<p class="text-danger">AI service unavailable. Please check your API key.</p>';
+    }
+}
+</script>
+}

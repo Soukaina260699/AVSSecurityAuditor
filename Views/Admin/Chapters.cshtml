@@ -1,0 +1,26 @@
+@* Chapters View *@
+@model List<AVSSecurityAuditor.Models.AsvsChapter>
+@{
+    ViewData["Title"] = "Chapters";
+}
+
+<h2 class="fw-bold mb-4"><i class="fas fa-folder me-2 text-success"></i>ASVS Chapters</h2>
+
+<div class="row g-3">
+    @foreach (var ch in Model)
+    {
+        <div class="col-md-4">
+            <div class="card p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge bg-primary">V@ch.ChapterNumber</span>
+                    <span class="badge bg-secondary">@ch.Requirements.Count reqs</span>
+                </div>
+                <h6 class="fw-bold">@ch.Name</h6>
+                @if (!string.IsNullOrEmpty(ch.Description))
+                {
+                    <p class="text-muted small mb-0">@ch.Description</p>
+                }
+            </div>
+        </div>
+    }
+</div>

@@ -1,0 +1,28 @@
+/* ASVS Security Auditor - Custom Styles */
+
+/* Smooth transitions */
+* { transition: border-color .15s ease, background-color .15s ease; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0f1117; }
+::-webkit-scrollbar-thumb { background: #2a2d3e; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3a3d4e; }
+
+/* Cards hover effect */
+.card:hover { border-color: rgba(13,110,253,.3); }
+a.card:hover { text-decoration: none; border-color: rgba(13,110,253,.5) !important; }
+
+/* Status badges */
+.badge { border-radius: 6px; font-weight: 500; padding: .35em .65em; }
+
+/* Requirement cards */
+.requirement-card { transition: border-color .3s ease !important; }
+
+/* Print styles */
+@@media print {
+    .sidebar, nav, .btn, .alert { display: none !important; }
+    .main-content { margin: 0 !important; }
+    .card { border: 1px solid #ddd !important; background: #fff !important; color: #000 !important; }
+    body { background: #fff !important; color: #000 !important; }
+}

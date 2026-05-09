@@ -1,0 +1,63 @@
+@* Assessment Index *@
+@model List<AVSSecurityAuditor.Models.Assessment>
+@{
+    ViewData["Title"] = "My Assessments";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fas fa-tasks me-2 text-primary"></i>My Assessments</h2>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>New Assessment
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card p-5 text-center">
+        <i class="fas fa-tasks fa-4x text-muted mb-3 opacity-25"></i>
+        <h4>No Assessments Yet</h4>
+        <p class="text-muted">Create your first ASVS security assessment.</p>
+        <a asp-action="Create" class="btn btn-primary mx-auto" style="width:fit-content;">
+            <i class="fas fa-plus me-2"></i>Create Assessment
+        </a>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var a in Model)
+        {
+            <div class="col-md-6">
+                <div class="card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h5 class="fw-bold mb-1">@a.ProjectName</h5>
+                            <p class="text-muted small mb-0">@a.Name</p>
+                        </div>
+                        <span class="badge bg-primary">ASVS</span>
+                    </div>
+                    <div class="text-muted small mb-3">
+                        <i class="fas fa-user me-1"></i>@a.Auditor &nbsp;|&nbsp;
+                        <i class="fas fa-calendar me-1"></i>@a.CreatedAt.ToString("dd MMM yyyy")
+                    </div>
+                    <div class="d-flex gap-2 mt-auto">
+                        <a asp-action="Evaluate" asp-route-id="@a.Id" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-edit me-1"></i>Evaluate
+                        </a>
+                        <a asp-action="Report" asp-route-id="@a.Id" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-chart-bar me-1"></i>Report
+                        </a>
+                        <form asp-action="Delete" method="post" class="ms-auto"
+                              onsubmit="return confirm('Delete this assessment?')">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@a.Id"/>
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

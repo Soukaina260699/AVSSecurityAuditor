@@ -1,0 +1,51 @@
+@model AVSSecurityAuditor.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="d-flex justify-content-center align-items-center" style="min-height:80vh;">
+    <div class="w-100" style="max-width:440px;">
+        <div class="text-center mb-4">
+            <i class="fas fa-user-plus text-primary" style="font-size:3rem;"></i>
+            <h3 class="fw-bold mt-2">Create Account</h3>
+            <p class="text-muted">Join ASVS Security Auditor</p>
+        </div>
+        <div class="card p-4">
+            <form asp-action="Register" method="post">
+                @Html.AntiForgeryToken()
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger">
+                        @foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <div>@e.ErrorMessage</div>
+                        }
+                    </div>
+                }
+                <div class="mb-3">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" name="FullName" class="form-control" placeholder="Your Name" required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="Email" class="form-control" placeholder="your@email.com" required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <input type="password" name="Password" class="form-control" placeholder="Min. 6 characters" required />
+                </div>
+                <div class="mb-4">
+                    <label class="form-label">Confirm Password</label>
+                    <input type="password" name="ConfirmPassword" class="form-control" placeholder="Repeat password" required />
+                </div>
+                <button type="submit" class="btn btn-primary w-100 fw-bold py-2">
+                    <i class="fas fa-user-plus me-2"></i>Create Account
+                </button>
+            </form>
+            <div class="text-center mt-3">
+                <span class="text-muted">Already have an account?</span>
+                <a asp-controller="Account" asp-action="Login" class="text-primary ms-1">Login</a>
+            </div>
+        </div>
+    </div>
+</div>
