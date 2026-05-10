@@ -1,4 +1,4 @@
-# 🛡️ ASVS Security Auditor
+# ASVS Security Auditor
 
 Développé par **Soukaina Hessain** dans le cadre d'un projet de fin de module.
 
