@@ -20,7 +20,7 @@
                 <option value="">All Chapters</option>
                 @foreach (var ch in (IEnumerable<AVSSecurityAuditor.Models.AsvsChapter>)ViewBag.Chapters)
                 {
-                    <option value="@ch.Id" @(ViewBag.ChapterId?.ToString() == ch.Id.ToString() ? "selected" : "")>
+                    <option value="@ch.Id" selected="@(ViewBag.ChapterId?.ToString() == ch.Id.ToString())">
                         V@ch.ChapterNumber. @ch.Name
                     </option>
                 }
