@@ -54,8 +54,11 @@ builder.Services.AddScoped<IAsvsRepository, AsvsRepository>();
 builder.Services.AddScoped<IAssessmentRepository, AssessmentRepository>();
 builder.Services.AddScoped<CsvImportService>();
 builder.Services.AddScoped<ReportService>();
-builder.Services.AddHttpClient<AiAssistantService>();
-
+builder.Services.AddHttpClient<AiAssistantService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
