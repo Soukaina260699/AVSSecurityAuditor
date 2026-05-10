@@ -26,3 +26,9 @@ a.card:hover { text-decoration: none; border-color: rgba(13,110,253,.5) !importa
     .card { border: 1px solid #ddd !important; background: #fff !important; color: #000 !important; }
     body { background: #fff !important; color: #000 !important; }
 }
+
+/* Fix textes invisibles */
+.card { color: #e2e8f0 !important; }
+.card p, .card small, .card span { color: #adb5bd !important; }
+.card h5, .card h6 { color: #ffffff !important; }
+.text-muted { color: #8b9bb4 !important; }
