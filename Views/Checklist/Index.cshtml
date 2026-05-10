@@ -10,7 +10,6 @@
     </div>
 </div>
 
-<!-- Search & Filter -->
 <div class="card p-3 mb-4">
     <form method="get" class="row g-2">
         <div class="col-md-8">
@@ -22,16 +21,19 @@
                 <option value="">All Chapters</option>
                 @foreach (var ch in Model.Chapters)
                 {
-                    <option value="@ch.Id" selected="@(Model.FilterChapter == ch.Id)">
-                        V@ch.ChapterNumber. @ch.Name
-                    </option>
+                    if (Model.FilterChapter == ch.Id)
+                    {
+                        <option value="@ch.Id" selected="selected">V@(ch.ChapterNumber). @ch.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@ch.Id">V@(ch.ChapterNumber). @ch.Name</option>
+                    }
                 }
             </select>
         </div>
         <div class="col-md-1">
-            <button type="submit" class="btn btn-primary w-100">
-                <i class="fas fa-search"></i>
-            </button>
+            <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search"></i></button>
         </div>
     </form>
 </div>
@@ -44,7 +46,7 @@
         <p class="text-muted">
             @if (User.IsInRole("Admin"))
             {
-                <text>Please <a asp-controller="Admin" asp-action="Import">import the ASVS CSV</a> to populate the checklist.</text>
+                <text>Please <a asp-controller="Admin" asp-action="Import" class="text-primary">import the ASVS CSV</a> to populate the checklist.</text>
             }
             else
             {
@@ -61,8 +63,8 @@
              style="background:rgba(13,110,253,.1);border-bottom:1px solid #2a2d3e;cursor:pointer;"
              data-bs-toggle="collapse" data-bs-target="#ch-@chapter.Id">
             <div>
-                <span class="badge bg-primary me-2">V@chapter.ChapterNumber</span>
-                <strong>@chapter.Name</strong>
+                <span class="badge bg-primary me-2">V@(chapter.ChapterNumber)</span>
+                <strong style="color:#ffffff;">@chapter.Name</strong>
             </div>
             <div class="d-flex align-items-center gap-2">
                 <span class="badge bg-secondary">@chapter.Requirements.Count reqs</span>
@@ -77,13 +79,13 @@
                         <div class="d-flex justify-content-between align-items-start mb-1">
                             <div>
                                 <span class="badge bg-primary me-2">@req.RequirementId</span>
-                                <strong>@req.Title</strong>
+                                <strong style="color:#ffffff;">@req.Title</strong>
                             </div>
                             <div class="d-flex gap-1 ms-2 flex-shrink-0">
-                                @if (req.Level1 == "✓") { <span class="badge bg-success">L1</span> }
-                                @if (req.Level2 == "✓") { <span class="badge bg-warning text-dark">L2</span> }
-                                @if (req.Level3 == "✓") { <span class="badge bg-danger">L3</span> }
-                                @if (!string.IsNullOrEmpty(req.Cwe)) { <span class="badge bg-dark">CWE-@req.Cwe</span> }
+                                @if (req.Level1 == "✓" || req.Level1 == "1") { <span class="badge bg-success">L1</span> }
+                                @if (req.Level2 == "✓" || req.Level2 == "1") { <span class="badge bg-warning text-dark">L2</span> }
+                                @if (req.Level3 == "✓" || req.Level3 == "1") { <span class="badge bg-danger">L3</span> }
+                                @if (!string.IsNullOrEmpty(req.Cwe) && req.Cwe != "0") { <span class="badge bg-dark">CWE-@req.Cwe</span> }
                             </div>
                         </div>
                         <p class="text-muted small mb-0">@req.Description</p>

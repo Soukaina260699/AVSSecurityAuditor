@@ -8,47 +8,59 @@ namespace AVSSecurityAuditor.Services
         private readonly HttpClient _httpClient;
         private readonly ILogger<AiAssistantService> _logger;
 
-        private const string API_KEY = "sk-5a25b193a6154b8baf3ae2e45da100c7";
-        private const string API_URL = "https://api.deepseek.com/v1/chat/completions";
-
         public AiAssistantService(HttpClient httpClient, ILogger<AiAssistantService> logger)
         {
             _httpClient = httpClient;
             _logger = logger;
         }
 
+        private string GetKey() =>
+            Environment.GetEnvironmentVariable("OPENAI_API_KEY")
+            ?? Environment.GetEnvironmentVariable("AI__OpenAiApiKey")
+            ?? string.Empty;
+
         public async Task<string> ExplainRequirementAsync(string requirementId, string description, string userLanguage = "en")
         {
             try
             {
+                var apiKey = GetKey();
+
+                if (string.IsNullOrEmpty(apiKey))
+                {
+                    _logger.LogWarning("No OpenAI API key found in environment variables");
+                    return userLanguage == "fr"
+                        ? "❌ Clé API manquante. Ajoutez OPENAI_API_KEY dans les variables Railway."
+                        : "❌ API key missing. Add OPENAI_API_KEY in Railway variables.";
+                }
+
                 var prompt = userLanguage == "fr"
-                    ? $"Explique clairement l'exigence ASVS {requirementId}: \"{description}\". Donne un exemple pratique et pourquoi c'est important pour la sécurité des applications web. Réponds en français."
-                    : $"Clearly explain the ASVS requirement {requirementId}: \"{description}\". Provide a practical example and why it matters for web application security. Answer in English.";
+                    ? $"Tu es un expert OWASP. Explique l'exigence ASVS {requirementId}: \"{description}\". Donne un exemple concret et pratique. Réponds en français."
+                    : $"You are an OWASP expert. Explain ASVS requirement {requirementId}: \"{description}\". Give a concrete practical example. Answer in English.";
 
                 _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {API_KEY}");
+                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
 
                 var body = new
                 {
-                    model = "deepseek-chat",
+                    model = "gpt-3.5-turbo",
                     messages = new[]
                     {
-                        new { role = "system", content = "You are a cybersecurity expert specializing in OWASP ASVS." },
+                        new { role = "system", content = "You are a cybersecurity expert specializing in OWASP ASVS v4.0." },
                         new { role = "user", content = prompt }
                     },
-                    max_tokens = 600,
+                    max_tokens = 500,
                     temperature = 0.7
                 };
 
-                var resp = await _httpClient.PostAsJsonAsync(API_URL, body);
+                var resp = await _httpClient.PostAsJsonAsync("https://api.openai.com/v1/chat/completions", body);
 
                 if (!resp.IsSuccessStatusCode)
                 {
                     var error = await resp.Content.ReadAsStringAsync();
-                    _logger.LogError("DeepSeek error: {error}", error);
+                    _logger.LogError("OpenAI error {status}: {error}", resp.StatusCode, error);
                     return userLanguage == "fr"
-                        ? $"❌ Erreur API ({resp.StatusCode}). Vérifiez votre clé DeepSeek."
-                        : $"❌ API error ({resp.StatusCode}). Check your DeepSeek key.";
+                        ? $"❌ Erreur OpenAI ({resp.StatusCode}). Vérifiez votre clé et votre solde."
+                        : $"❌ OpenAI error ({resp.StatusCode}). Check your key and credits.";
                 }
 
                 var json = await resp.Content.ReadAsStringAsync();

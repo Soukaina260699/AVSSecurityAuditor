@@ -1,4 +1,3 @@
-@* Requirements View *@
 @model List<AVSSecurityAuditor.Models.AsvsRequirement>
 @{
     ViewData["Title"] = "Manage Requirements";
@@ -9,7 +8,6 @@
     <span class="badge bg-primary fs-6">@Model.Count total</span>
 </div>
 
-<!-- Search & Filter -->
 <div class="card p-3 mb-4">
     <form method="get" class="row g-2">
         <div class="col-md-6">
@@ -20,9 +18,14 @@
                 <option value="">All Chapters</option>
                 @foreach (var ch in (IEnumerable<AVSSecurityAuditor.Models.AsvsChapter>)ViewBag.Chapters)
                 {
-                    <option value="@ch.Id" selected="@(ViewBag.ChapterId?.ToString() == ch.Id.ToString())">
-                        V@ch.ChapterNumber. @ch.Name
-                    </option>
+                    if (ViewBag.ChapterId?.ToString() == ch.Id.ToString())
+                    {
+                        <option value="@ch.Id" selected="selected">V@(ch.ChapterNumber). @ch.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@ch.Id">V@(ch.ChapterNumber). @ch.Name</option>
+                    }
                 }
             </select>
         </div>
@@ -51,15 +54,15 @@
                     <tr>
                         <td><span class="badge bg-primary">@r.RequirementId</span></td>
                         <td><small class="text-muted">@r.Chapter?.Name</small></td>
-                        <td>@r.Title</td>
+                        <td style="color:#e2e8f0;">@r.Title</td>
                         <td>
-                            @if (r.Level1 == "✓") { <span class="badge bg-success me-1">L1</span> }
-                            @if (r.Level2 == "✓") { <span class="badge bg-warning text-dark me-1">L2</span> }
-                            @if (r.Level3 == "✓") { <span class="badge bg-danger">L3</span> }
+                            @if (r.Level1 == "✓" || r.Level1 == "1") { <span class="badge bg-success me-1">L1</span> }
+                            @if (r.Level2 == "✓" || r.Level2 == "1") { <span class="badge bg-warning text-dark me-1">L2</span> }
+                            @if (r.Level3 == "✓" || r.Level3 == "1") { <span class="badge bg-danger">L3</span> }
                         </td>
-                        <td><small>@r.Cwe</small></td>
+                        <td><small style="color:#adb5bd;">@r.Cwe</small></td>
                         <td>
-                            <a asp-action="EditRequirement" asp-route-id="@r.Id" class="btn btn-sm btn-outline-primary">
+                            <a asp-action="EditRequirement" asp-route-id="@r.Id" class="btn btn-sm btn-outline-primary me-1">
                                 <i class="fas fa-edit"></i>
                             </a>
                             <form asp-action="DeleteRequirement" method="post" class="d-inline"
