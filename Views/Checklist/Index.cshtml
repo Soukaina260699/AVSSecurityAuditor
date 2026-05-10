@@ -22,7 +22,7 @@
                 <option value="">All Chapters</option>
                 @foreach (var ch in Model.Chapters)
                 {
-                    <option value="@ch.Id" @(Model.FilterChapter == ch.Id ? "selected" : "")>
+                    <option value="@ch.Id" selected="@(Model.FilterChapter == ch.Id)">
                         V@ch.ChapterNumber. @ch.Name
                     </option>
                 }
