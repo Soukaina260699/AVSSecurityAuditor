@@ -1,6 +1,11 @@
 @model AVSSecurityAuditor.ViewModels.BenchmarkReportViewModel
 @{
     ViewData["Title"] = "Assessment Report";
+    var ci = System.Globalization.CultureInfo.InvariantCulture;
+    double validPct = Model.TotalRequirements > 0 ? Model.ValidCount * 100.0 / Model.TotalRequirements : 0;
+    double nvPct = Model.TotalRequirements > 0 ? Model.NotValidCount * 100.0 / Model.TotalRequirements : 0;
+    double naPct = Model.TotalRequirements > 0 ? Model.NotApplicableCount * 100.0 / Model.TotalRequirements : 0;
+    double pPct = Model.TotalRequirements > 0 ? Model.PendingCount * 100.0 / Model.TotalRequirements : 0;
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -18,14 +23,13 @@
     </div>
 </div>
 
-<!-- Summary Cards -->
 <div class="row g-3 mb-4">
     <div class="col-md-3">
         <div class="card p-4 text-center">
             <div class="display-5 fw-bold text-@Model.RiskColor mb-1">@Model.CompliancePercentage%</div>
             <div class="text-muted">Overall Compliance</div>
             <div class="progress mt-2" style="height:6px;">
-                <div class="progress-bar bg-@Model.RiskColor" style="width:@Model.CompliancePercentage%"></div>
+                <div class="progress-bar bg-@Model.RiskColor" style="width:@(Model.CompliancePercentage.ToString("F1", ci))%"></div>
             </div>
         </div>
     </div>
@@ -56,27 +60,16 @@
                     <small class="text-muted">Pending</small>
                 </div>
             </div>
-            @{
-                double validPct = Model.TotalRequirements > 0 ? Model.ValidCount * 100.0 / Model.TotalRequirements : 0;
-                double nvPct = Model.TotalRequirements > 0 ? Model.NotValidCount * 100.0 / Model.TotalRequirements : 0;
-                double naPct = Model.TotalRequirements > 0 ? Model.NotApplicableCount * 100.0 / Model.TotalRequirements : 0;
-                double pPct = Model.TotalRequirements > 0 ? Model.PendingCount * 100.0 / Model.TotalRequirements : 0;
-                string validW = validPct.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
-                string nvW = nvPct.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
-                string naW = naPct.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
-                string pW = pPct.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
-            }
             <div class="progress mt-3" style="height:10px;">
-                <div class="progress-bar bg-success" style="width:@(validW)%"></div>
-                <div class="progress-bar bg-danger" style="width:@(nvW)%"></div>
-                <div class="progress-bar bg-secondary" style="width:@(naW)%"></div>
-                <div class="progress-bar bg-warning" style="width:@(pW)%"></div>
+                <div class="progress-bar bg-success" style="width:@(validPct.ToString("F1", ci))%"></div>
+                <div class="progress-bar bg-danger" style="width:@(nvPct.ToString("F1", ci))%"></div>
+                <div class="progress-bar bg-secondary" style="width:@(naPct.ToString("F1", ci))%"></div>
+                <div class="progress-bar bg-warning" style="width:@(pPct.ToString("F1", ci))%"></div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Charts -->
 <div class="row g-4 mb-4">
     <div class="col-md-6">
         <div class="card p-4">
@@ -92,7 +85,6 @@
     </div>
 </div>
 
-<!-- Chapter Analysis Table -->
 <div class="card p-4 mb-4">
     <h5 class="fw-bold mb-3"><i class="fas fa-table me-2 text-primary"></i>Chapter-by-Chapter Analysis</h5>
     <div class="table-responsive">
@@ -124,7 +116,7 @@
                             <div class="d-flex align-items-center gap-2">
                                 <div class="progress flex-grow-1" style="height:6px;">
                                     <div class="progress-bar bg-@(ch.Compliance >= 80 ? "success" : ch.Compliance >= 50 ? "warning" : "danger")"
-                                         style="width:@ch.Compliance%"></div>
+                                         style="width:@(ch.Compliance.ToString("F1", ci))%"></div>
                                 </div>
                                 <span class="small fw-bold">@ch.Compliance%</span>
                             </div>
@@ -138,17 +130,17 @@
 
 @if (Model.WeakAreas.Any())
 {
-    <div class="card p-4 border-danger">
-        <h5 class="fw-bold mb-3 text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Weak Areas (< 50% Compliance)</h5>
+    <div class="card p-4 border-danger mb-4">
+        <h5 class="fw-bold mb-3 text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Weak Areas</h5>
         <div class="row g-3">
             @foreach (var w in Model.WeakAreas)
             {
                 <div class="col-md-4">
-                    <div class="card p-3" style="border-color:rgba(220,53,69,.3)!important;">
+                    <div class="card p-3">
                         <div class="fw-bold">V@w.ChapterNumber. @w.ChapterName</div>
                         <div class="d-flex align-items-center gap-2 mt-2">
                             <div class="progress flex-grow-1" style="height:8px;">
-                                <div class="progress-bar bg-danger" style="width:@w.Compliance%"></div>
+                                <div class="progress-bar bg-danger" style="width:@(w.Compliance.ToString("F1", ci))%"></div>
                             </div>
                             <span class="text-danger fw-bold">@w.Compliance%</span>
                         </div>
@@ -160,20 +152,19 @@
     </div>
 }
 
-<!-- Report Info -->
 <div class="card p-3 mt-4">
     <div class="row text-center">
         <div class="col"><small class="text-muted">Auditor</small><br><strong>@Model.Auditor</strong></div>
         <div class="col"><small class="text-muted">Date</small><br><strong>@Model.CreatedAt.ToString("dd MMM yyyy")</strong></div>
         <div class="col"><small class="text-muted">Standard</small><br><strong>OWASP ASVS v4.0</strong></div>
-        <div class="col"><small class="text-muted">Total Requirements</small><br><strong>@Model.TotalRequirements</strong></div>
+        <div class="col"><small class="text-muted">Total</small><br><strong>@Model.TotalRequirements</strong></div>
     </div>
 </div>
 
 @section Scripts {
 <script>
     const chapterLabels = [@Html.Raw(string.Join(",", Model.ChapterStats.Select(c => $"\"V{c.ChapterNumber}\"")))];
-    const chapterData = [@Html.Raw(string.Join(",", Model.ChapterStats.Select(c => c.Compliance)))];
+    const chapterData = [@Html.Raw(string.Join(",", Model.ChapterStats.Select(c => c.Compliance.ToString("F1", System.Globalization.CultureInfo.InvariantCulture))))];
 
     new Chart(document.getElementById('chapterChart'), {
         type: 'bar',
@@ -208,9 +199,7 @@
         },
         options: {
             responsive: true,
-            plugins: {
-                legend: { labels: { color: '#adb5bd' } }
-            }
+            plugins: { legend: { labels: { color: '#adb5bd' } } }
         }
     });
 </script>
