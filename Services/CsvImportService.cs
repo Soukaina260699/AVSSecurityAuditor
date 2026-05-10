@@ -9,18 +9,17 @@ namespace AVSSecurityAuditor.Services
 {
     public class CsvImportRecord
     {
-        public string? Chapter { get; set; }
-        public string? ChapterName { get; set; }
-        public string? Section { get; set; }
-        public string? SectionName { get; set; }
-        public string? Req_id { get; set; }
-        public string? Item { get; set; }
-        public string? Description { get; set; }
-        public string? L1 { get; set; }
-        public string? L2 { get; set; }
-        public string? L3 { get; set; }
-        public string? CWE { get; set; }
-        public string? NIST { get; set; }
+        public string? chapter_id { get; set; }
+        public string? chapter_name { get; set; }
+        public string? section_id { get; set; }
+        public string? section_name { get; set; }
+        public string? req_id { get; set; }
+        public string? req_description { get; set; }
+        public string? level1 { get; set; }
+        public string? level2 { get; set; }
+        public string? level3 { get; set; }
+        public string? cwe { get; set; }
+        public string? nist { get; set; }
     }
 
     public class CsvImportService
@@ -40,7 +39,8 @@ namespace AVSSecurityAuditor.Services
             {
                 HasHeaderRecord = true,
                 MissingFieldFound = null,
-                BadDataFound = null
+                BadDataFound = null,
+                HeaderValidated = null
             };
 
             using var reader = new StreamReader(csvStream);
@@ -49,12 +49,13 @@ namespace AVSSecurityAuditor.Services
             var records = csv.GetRecords<CsvImportRecord>().ToList();
 
             var chapterMap = new Dictionary<string, AsvsChapter>();
+            int reqCount = 0;
 
             foreach (var record in records)
             {
-                if (string.IsNullOrWhiteSpace(record.Req_id)) continue;
+                if (string.IsNullOrWhiteSpace(record.req_id)) continue;
 
-                var chapterKey = record.Chapter ?? "0";
+                var chapterKey = record.chapter_id ?? "0";
                 if (!chapterMap.ContainsKey(chapterKey))
                 {
                     var existing = await _context.AsvsChapters
@@ -64,8 +65,8 @@ namespace AVSSecurityAuditor.Services
                         existing = new AsvsChapter
                         {
                             ChapterNumber = int.TryParse(chapterKey, out var n) ? n : 0,
-                            Name = record.ChapterName ?? $"Chapter {chapterKey}",
-                            Description = record.SectionName ?? string.Empty
+                            Name = record.chapter_name ?? $"Chapter {chapterKey}",
+                            Description = record.section_name ?? string.Empty
                         };
                         await _context.AsvsChapters.AddAsync(existing);
                         await _context.SaveChangesAsync();
@@ -75,27 +76,29 @@ namespace AVSSecurityAuditor.Services
 
                 var chapter = chapterMap[chapterKey];
                 var reqExists = await _context.AsvsRequirements
-                    .AnyAsync(r => r.RequirementId == record.Req_id);
+                    .AnyAsync(r => r.RequirementId == record.req_id);
+
                 if (!reqExists)
                 {
                     var req = new AsvsRequirement
                     {
-                        RequirementId = record.Req_id!,
+                        RequirementId = record.req_id!,
                         ChapterId = chapter.Id,
-                        Title = record.Item ?? string.Empty,
-                        Description = record.Description ?? string.Empty,
-                        Level1 = record.L1 ?? string.Empty,
-                        Level2 = record.L2 ?? string.Empty,
-                        Level3 = record.L3 ?? string.Empty,
-                        Cwe = record.CWE ?? string.Empty,
-                        Nist = record.NIST ?? string.Empty
+                        Title = record.req_id!,
+                        Description = record.req_description ?? string.Empty,
+                        Level1 = record.level1 ?? string.Empty,
+                        Level2 = record.level2 ?? string.Empty,
+                        Level3 = record.level3 ?? string.Empty,
+                        Cwe = record.cwe ?? string.Empty,
+                        Nist = record.nist ?? string.Empty
                     };
                     await _context.AsvsRequirements.AddAsync(req);
+                    reqCount++;
                 }
             }
 
             await _context.SaveChangesAsync();
-            return (chapterMap.Count, records.Count(r => !string.IsNullOrWhiteSpace(r.Req_id)));
+            return (chapterMap.Count, reqCount);
         }
     }
 }
