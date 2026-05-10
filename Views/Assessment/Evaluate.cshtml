@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Evaluate - " + Model.Assessment.Name;
     int activeChapter = (int)(ViewBag.ActiveChapter ?? (Model.Chapters.FirstOrDefault()?.Id ?? 0));
+    string lang = "fr";
     var items = Model.Assessment.Items.ToList();
     int total = items.Count;
     int valid = items.Count(i => i.Status == AVSSecurityAuditor.Models.AssessmentStatus.Valid);
