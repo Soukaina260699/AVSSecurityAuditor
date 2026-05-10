@@ -1,6 +1,5 @@
-/* ASVS Security Auditor - Custom Styles */
+/* ASVS Security Auditor - Fix complet couleurs */
 
-/* Smooth transitions */
 * { transition: border-color .15s ease, background-color .15s ease; }
 
 /* Scrollbar */
@@ -9,26 +8,64 @@
 ::-webkit-scrollbar-thumb { background: #2a2d3e; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #3a3d4e; }
 
-/* Cards hover effect */
+/* Force textes visibles partout */
+body, p, span, div, td, th, li, label { color: #e2e8f0; }
+.text-muted { color: #8b9bb4 !important; }
+.card { color: #e2e8f0 !important; }
+.card p { color: #adb5bd !important; }
+.card small { color: #8b9bb4 !important; }
+h1, h2, h3, h4, h5, h6 { color: #ffffff !important; }
+.fw-bold { color: #ffffff !important; }
+
+/* Dropdown options */
+.form-select option { background: #1a1d2e; color: #e2e8f0; }
+select option { background: #1a1d2e !important; color: #e2e8f0 !important; }
+
+/* Tables */
+.table { color: #e2e8f0 !important; }
+.table td, .table th { color: #e2e8f0 !important; border-color: #2a2d3e !important; }
+.table thead th { color: #ffffff !important; background: rgba(255,255,255,.05) !important; }
+.table-hover tbody tr:hover { background: rgba(255,255,255,.04) !important; }
+
+/* Badges */
+.badge { font-weight: 500; }
+.badge-valid { background: rgba(25,135,84,.2); color: #75b798 !important; border: 1px solid rgba(25,135,84,.3); }
+.badge-notvalid { background: rgba(220,53,69,.2); color: #ea868f !important; border: 1px solid rgba(220,53,69,.3); }
+.badge-na { background: rgba(108,117,125,.2); color: #adb5bd !important; border: 1px solid rgba(108,117,125,.3); }
+.badge-pending { background: rgba(255,193,7,.2); color: #ffc107 !important; border: 1px solid rgba(255,193,7,.3); }
+
+/* Cards hover */
 .card:hover { border-color: rgba(13,110,253,.3); }
 a.card:hover { text-decoration: none; border-color: rgba(13,110,253,.5) !important; }
 
-/* Status badges */
-.badge { border-radius: 6px; font-weight: 500; padding: .35em .65em; }
+/* Alerts */
+.alert-success { background: rgba(25,135,84,.15) !important; border-color: rgba(25,135,84,.3) !important; color: #75b798 !important; }
+.alert-danger { background: rgba(220,53,69,.15) !important; border-color: rgba(220,53,69,.3) !important; color: #ea868f !important; }
+
+/* Sidebar links */
+.sidebar .nav-link { color: #adb5bd !important; }
+.sidebar .nav-link:hover { color: #ffffff !important; }
+
+/* Inputs */
+.form-control, .form-select { background: rgba(255,255,255,.05) !important; border-color: #2a2d3e !important; color: #e2e8f0 !important; }
+.form-control:focus, .form-select:focus { color: #e2e8f0 !important; }
+.form-control::placeholder { color: #6c757d !important; }
+
+/* Progress */
+.progress { background: rgba(255,255,255,.1); }
 
 /* Requirement cards */
 .requirement-card { transition: border-color .3s ease !important; }
 
-/* Print styles */
-@@media print {
+/* Dropdown menu */
+.dropdown-menu-dark { background: #1a1d2e !important; border: 1px solid #2a2d3e !important; }
+.dropdown-item { color: #adb5bd !important; }
+.dropdown-item:hover { background: rgba(255,255,255,.05) !important; color: #fff !important; }
+
+/* Print */
+@media print {
     .sidebar, nav, .btn, .alert { display: none !important; }
     .main-content { margin: 0 !important; }
     .card { border: 1px solid #ddd !important; background: #fff !important; color: #000 !important; }
     body { background: #fff !important; color: #000 !important; }
 }
-
-/* Fix textes invisibles */
-.card { color: #e2e8f0 !important; }
-.card p, .card small, .card span { color: #adb5bd !important; }
-.card h5, .card h6 { color: #ffffff !important; }
-.text-muted { color: #8b9bb4 !important; }
