@@ -56,17 +56,21 @@
                     <small class="text-muted">Pending</small>
                 </div>
             </div>
+            @{
+                double validPct = Model.TotalRequirements > 0 ? Model.ValidCount * 100.0 / Model.TotalRequirements : 0;
+                double nvPct = Model.TotalRequirements > 0 ? Model.NotValidCount * 100.0 / Model.TotalRequirements : 0;
+                double naPct = Model.TotalRequirements > 0 ? Model.NotApplicableCount * 100.0 / Model.TotalRequirements : 0;
+                double pPct = Model.TotalRequirements > 0 ? Model.PendingCount * 100.0 / Model.TotalRequirements : 0;
+                string validW = validPct.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+                string nvW = nvPct.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+                string naW = naPct.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+                string pW = pPct.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+            }
             <div class="progress mt-3" style="height:10px;">
-                @{ 
-                    double validPct = Model.TotalRequirements > 0 ? Model.ValidCount * 100.0 / Model.TotalRequirements : 0;
-                    double nvPct = Model.TotalRequirements > 0 ? Model.NotValidCount * 100.0 / Model.TotalRequirements : 0;
-                    double naPct = Model.TotalRequirements > 0 ? Model.NotApplicableCount * 100.0 / Model.TotalRequirements : 0;
-                    double pPct = Model.TotalRequirements > 0 ? Model.PendingCount * 100.0 / Model.TotalRequirements : 0;
-                }
-                <div class="progress-bar bg-success" style="width:@validPct%"></div>
-                <div class="progress-bar bg-danger" style="width:@nvPct%"></div>
-                <div class="progress-bar bg-secondary" style="width:@naPct%"></div>
-                <div class="progress-bar bg-warning" style="width:@pPct%"></div>
+                <div class="progress-bar bg-success" style="width:@(validW)%"></div>
+                <div class="progress-bar bg-danger" style="width:@(nvW)%"></div>
+                <div class="progress-bar bg-secondary" style="width:@(naW)%"></div>
+                <div class="progress-bar bg-warning" style="width:@(pW)%"></div>
             </div>
         </div>
     </div>
