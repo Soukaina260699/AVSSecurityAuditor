@@ -49,7 +49,7 @@ Ouvrir : `https://localhost:5001`
 
 ## Déploiement
 Déployé gratuitement sur Railway :
-👉 https://votre-app.up.railway.app
+👉https://avssecurityauditor-production-7d77.up.railway.app/
 
 ## Auteure
 **Soukaina Hessain**
