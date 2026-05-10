@@ -9,11 +9,24 @@ using AVSSecurityAuditor.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Database
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Data Source=asvs_auditor.db";
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(connectionString)); // SQLite for easy deployment; switch to UseSqlServer for production
+if (!string.IsNullOrEmpty(databaseUrl))
+{
+    // Railway PostgreSQL
+    var uri = new Uri(postgresql://postgres:tGslyEsjLmszILniIjlDfTnSgUhIMofC@gondola.proxy.rlwy.net:23572/railway);
+    var userInfo = uri.UserInfo.Split(':');
+    connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseNpgsql(connectionString));
+}
+else
+{
+    // Local SQLite
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseSqlite("Data Source=asvs_auditor.db"));
+}
 
 // Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
